@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Xlsx.Types where
+module Xlsx.Sheet where
 
 import Data.Monoid
 import Data.Char
@@ -21,9 +21,11 @@ instance Monoid Rows where
 class ToRow a where
     toRow :: a -> Row
 
+decl :: Markup
+decl = Content $ Static "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+
 renderSheet :: [Row] -> Markup
 renderSheet rows = Append decl $ wrksh where
-    decl = Content $ Static "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
     wrksh = AddAttribute "bla" " xmlns=\"" "http://schemas.openxmlformats.org/spreadsheetml/2006/main" $
         AddAttribute "xmlns:r" " xmlns:r=\"" "http://schemas.openxmlformats.org/officeDocument/2006/relationships" $
         AddAttribute "xmlns:mc" " xmlns:mc=\"" "http://schemas.openxmlformats.org/markup-compatibility/2006" $
@@ -33,9 +35,6 @@ renderSheet rows = Append decl $ wrksh where
         Parent "sheetData" "<sheetData" "</sheetData>" $ go 1 rows
     go _ [] = Empty
     go n (r:rs) = Append (r n) (go (n+1) rs)
-
-{-fromRows :: ToRow a => [a] -> SheetData
-fromRows = mconcat . map toRows -}
 
 rowValue :: Int -> ChoiceString
 rowValue n = Text $ T.pack $ show n
@@ -113,4 +112,3 @@ instance ToCell ByteString where
 
 instance ToCell Text where
     toCell = inlineStr . toMarkup
-    

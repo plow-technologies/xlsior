@@ -16,7 +16,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Xlsx.Writer, Xlsx.Types
+  exposed-modules:     Xlsx.Writer, Xlsx.Sheet
   -- other-modules:       
   other-extensions:    OverloadedStrings
   build-depends:       base >=4.7 && <4.8, zip-archive >=0.2 && <0.3, blaze-markup >=0.6 && <0.7, text, bytestring, semigroups
