@@ -10,22 +10,32 @@ import Data.ByteString (ByteString)
 import Data.Text (Text)
 import qualified Data.Text as T
 
-newtype SheetData = SheetData { unRows :: Int -> Markup }
+type Row = Int -> Markup
 
-instance Monoid SheetData where
-    mappend a b = SheetData $ \n -> Append (unRows a n) (unRows b (n+1))
-    mempty = undefined
+{-newtype Rows = Rows { unRows :: Int -(Int, Markup) }
 
-class ToRows a where
-    toRows :: a -> SheetData
+instance Monoid Rows where
+    mappend a b = Rows $ \n -> Append (unRows a n) (unRows b n')
+    mempty = undefined -}
 
-renderSheet :: SheetData -> Markup
-renderSheet s = Append decl $ wrksh where
-    decl = undefined
-    wrksh = undefined
+class ToRow a where
+    toRow :: a -> Row
 
-fromRows :: ToRows a => [a] -> SheetData
-fromRows = mconcat . map toRows
+renderSheet :: [Row] -> Markup
+renderSheet rows = Append decl $ wrksh where
+    decl = Content $ Static "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+    wrksh = AddAttribute "bla" " xmlns=\"" "http://schemas.openxmlformats.org/spreadsheetml/2006/main" $
+        AddAttribute "xmlns:r" " xmlns:r=\"" "http://schemas.openxmlformats.org/officeDocument/2006/relationships" $
+        AddAttribute "xmlns:mc" " xmlns:mc=\"" "http://schemas.openxmlformats.org/markup-compatibility/2006" $
+        AddAttribute "mc:Ignorable" " mc:Ignorable=\"" "x14ac" $
+        AddAttribute "xmlns:x14ac" " xmlns:x14ac=\"" "http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac" $
+        Parent "worksheet" "<worksheet" "</worksheet>" $
+        Parent "sheetData" "<sheetData" "</sheetData>" $ go 1 rows
+    go _ [] = Empty
+    go n (r:rs) = Append (r n) (go (n+1) rs)
+
+{-fromRows :: ToRow a => [a] -> SheetData
+fromRows = mconcat . map toRows -}
 
 rowValue :: Int -> ChoiceString
 rowValue n = Text $ T.pack $ show n
@@ -44,34 +54,34 @@ cellName r c = AddAttribute "r" " r=\"" cell where
                         i'' = if i' == 0 then 26 else i'
                     in seq i' (i' : base26 ((i - i'') `div` 26))
 
-mkRow :: ChoiceString -> (Int -> Markup) -> SheetData
-mkRow spn m = SheetData $ \n -> AddAttribute "r" " r=\"" (rowValue n) $ AddAttribute "spans" " spans=\"" spn $
-    Parent "row" "<row" "</row" $ m n
+mkRow :: ChoiceString -> (Int -> Markup) -> Row
+mkRow spn m n = AddAttribute "r" " r=\"" (rowValue n) $ AddAttribute "spans" " spans=\"" spn $
+    Parent "row" "<row" "</row>" $ m n
 
-instance (ToCell a, ToCell b) => ToRows (a, b) where
-    toRows (a, b) = mkRow spn $ \r ->
+instance (ToCell a, ToCell b) => ToRow (a, b) where
+    toRow (a, b) = mkRow spn $ \r ->
         (cellName r 1 $ toCell a) <> (cellName r 2 $ toCell b) where
             spn = spanRange 2
 
-instance (ToCell a, ToCell b, ToCell c) => ToRows (a, b, c) where
-    toRows (a, b, c) = mkRow spn $ \r ->
+instance (ToCell a, ToCell b, ToCell c) => ToRow (a, b, c) where
+    toRow (a, b, c) = mkRow spn $ \r ->
         (cellName r 1 $ toCell a) <> (cellName r 2 $ toCell b) <> (cellName r 3 $ toCell c) where
             spn = spanRange 3
 
-instance (ToCell a, ToCell b, ToCell c, ToCell d) => ToRows (a, b, c, d) where
-    toRows (a, b, c, d) = mkRow spn $ \r ->
+instance (ToCell a, ToCell b, ToCell c, ToCell d) => ToRow (a, b, c, d) where
+    toRow (a, b, c, d) = mkRow spn $ \r ->
         (cellName r 1 $ toCell a) <> (cellName r 2 $ toCell b) <> (cellName r 3 $ toCell c) <>
         (cellName r 4 $ toCell d) where
             spn = spanRange 3
 
-instance (ToCell a, ToCell b, ToCell c, ToCell d, ToCell e) => ToRows (a, b, c, d, e) where
-    toRows (a, b, c, d, e) = mkRow spn $ \r ->
+instance (ToCell a, ToCell b, ToCell c, ToCell d, ToCell e) => ToRow (a, b, c, d, e) where
+    toRow (a, b, c, d, e) = mkRow spn $ \r ->
         (cellName r 1 $ toCell a) <> (cellName r 2 $ toCell b) <> (cellName r 3 $ toCell c) <>
         (cellName r 4 $ toCell d) <> (cellName r 5 $ toCell e) where
             spn = spanRange 5
 
-instance (ToCell a, ToCell b, ToCell c, ToCell d, ToCell e, ToCell f) => ToRows (a, b, c, d, e, f) where
-    toRows (a, b, c, d, e, f) = mkRow spn $ \r ->
+instance (ToCell a, ToCell b, ToCell c, ToCell d, ToCell e, ToCell f) => ToRow (a, b, c, d, e, f) where
+    toRow (a, b, c, d, e, f) = mkRow spn $ \r ->
         (cellName r 1 $ toCell a) <> (cellName r 2 $ toCell b) <> (cellName r 3 $ toCell c) <>
         (cellName r 4 $ toCell d) <> (cellName r 5 $ toCell e) <> (cellName r 6 $ toCell f) where
             spn = spanRange 6
