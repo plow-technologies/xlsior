@@ -7,6 +7,8 @@ import Text.Blaze.Internal
 import Text.Blaze.Renderer.Utf8
 import Data.ByteString.Lazy (ByteString)
 import Data.Text.Lazy (Text)
+import Data.Time.Format
+import System.Locale
 import qualified Data.Text as T
 
 contTypes :: ByteString
@@ -31,3 +33,19 @@ appXml sheets = Append decl $
     Content $ Static "<LinksUpToDate>false</LinksUpToDate><SharedDoc>false</SharedDoc><HyperlinksChanged>false</HyperlinksChanged><AppVersion>14.0300</AppVersion></Properties>" where
     sheetMarkup = foldr step Empty sheets
     step s = Append $ Parent "vt:lpstr" "<vt:lpstr" "</vt:lpstr>" (Content $ Text s)
+
+coreXml :: FormatTime t => T.Text -> t -> Markup
+coreXml name time = Append decl $
+    AddAttribute "xmlns:cp" " xmlns:cp=\"" "http://schemas.openxmlformats.org/package/2006/metadata/core-properties" $
+    AddAttribute "xmlns:dc" " xmlns:dc=\"" "http://purl.org/dc/elements/1.1/" $
+    AddAttribute "xmlns:dcterms" " xmlns:dcterms=\"" "http://purl.org/dc/terms/" $
+    AddAttribute "xmlns:dcmitype" " xmlns:dcmitype=\"" "http://purl.org/dc/dcmitype/" $
+    AddAttribute "xmlns:xsi" " xmlns:xsi=\"" "http://www.w3.org/2001/XMLSchema-instance" $
+    Parent "cp:coreProperties" "<cp:coreProperties" "</cp:CoreProperties>" $
+    Append (Parent "dc:creator" "<dc:creator" "</dc:creator>" name') $
+    Append (Parent "cp:lastModifiedBy" "<cp:lastModifiedBy" "</cp:lastModifiedBy" name') $
+    Append (w3cdtf $ Parent "dcterms:created" "<dcterms:created" "</dcterms:created>" time') $
+    w3cdtf $ Parent "dcterms:modified" "<dcterms:modified" "</dcterms:modified>" time' where
+    w3cdtf = AddAttribute "xsi:type" " xsi:type=\"" "dcterms:W3CDTF"
+    name' = Content $ Text name
+    time' = Content $ Text $ T.pack $ formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%SZ" time
