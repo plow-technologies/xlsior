@@ -85,6 +85,21 @@ instance (ToCell a, ToCell b, ToCell c, ToCell d, ToCell e, ToCell f) => ToRow (
         (cellName r 4 $ toCell d) <> (cellName r 5 $ toCell e) <> (cellName r 6 $ toCell f) where
             spn = spanRange 6
 
+instance (ToCell a, ToCell b, ToCell c, ToCell d, ToCell e, ToCell f, ToCell g) => ToRow (a, b, c, d, e, f, g) where
+    toRow (a, b, c, d, e, f, g) = mkRow spn $ \r ->
+        (cellName r 1 $ toCell a) <> (cellName r 2 $ toCell b) <> (cellName r 3 $ toCell c) <>
+        (cellName r 4 $ toCell d) <> (cellName r 5 $ toCell e) <> (cellName r 6 $ toCell f) <>
+        (cellName r 7 $ toCell g) where
+            spn = spanRange 7
+
+instance (ToCell a, ToCell b, ToCell c, ToCell d, ToCell e, ToCell f, ToCell g, ToCell h) =>
+    ToRow (a, b, c, d, e, f, g, h) where
+    toRow (a, b, c, d, e, f, g, h) = mkRow spn $ \r ->
+        (cellName r 1 $ toCell a) <> (cellName r 2 $ toCell b) <> (cellName r 3 $ toCell c) <>
+        (cellName r 4 $ toCell d) <> (cellName r 5 $ toCell e) <> (cellName r 6 $ toCell f) <>
+        (cellName r 7 $ toCell g) <> (cellName r 8 $ toCell h) where
+            spn = spanRange 8
+
 class ToCell a where
     toCell :: a -> Markup
 
