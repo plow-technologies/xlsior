@@ -16,14 +16,14 @@ import System.Locale
 import qualified Data.Text as T
 
 contentTypes :: Int -> Markup
-contentTypes n = Append decl $ types $ Append (Content $ Static "<Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/><Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/><Override PartName=\"/docProps/core.xml\" ContentType=\"application/vnd.openxmlformats-package.core-properties+xml\"/><Override PartName=\"/docProps/app.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.extended-properties+xml\"/>") sheets where
+contentTypes n = Append decl $ types $ Append (Content $ Static "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/><Override PartName=\"/xl/theme/theme1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.theme+xml\"/><Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/><Override PartName=\"/docProps/core.xml\" ContentType=\"application/vnd.openxmlformats-package.core-properties+xml\"/><Override PartName=\"/docProps/app.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.extended-properties+xml\"/>") sheets where
     sheets = mconcat $ map sheet [1..n]
     types = AddAttribute "xmlns" " xmlns=\"" "http://schemas.openxmlformats.org/package/2006/content-types" .
         Parent "Types" "<Types" "</Types>"
     conttype = AddAttribute "ContentType" " ContentType=\""
     sheet :: Int -> Markup
     sheet n = conttype "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" $ 
-        AddAttribute "PartName" " PartName=\"" (String $ "xl/worksheet/sheet" ++ show n ++ ".xml") $
+        AddAttribute "PartName" " PartName=\"" (String $ "/xl/worksheet/sheet" ++ show n ++ ".xml") $
         Parent "Override" "<Override" "</Override>" Empty
 
 rootRelXml :: ByteString
@@ -61,6 +61,9 @@ coreXml name time = Append decl $
     w3cdtf = AddAttribute "xsi:type" " xsi:type=\"" "dcterms:W3CDTF"
     name' = Content $ Text name
     time' = Content $ Text $ T.pack $ formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%SZ" time
+
+theme1 :: Markup
+theme1 = decl
 
 workbook :: [T.Text] -> Markup
 workbook sheets = Append decl $
@@ -104,6 +107,7 @@ saveXlsx creator sheets path = do
             toEntry "docProps/core.xml" t (renderMarkup $ coreXml creator curtime),
             toEntry "xl/styles.xml" t styles,
             toEntry "xl/workbook.xml" t (renderMarkup $ workbook $ map fst sheets),
+            toEntry "xl/theme/theme1.xml" t (renderMarkup theme1),
             toEntry "xl/_rels/workbook.xml.rels" t (renderMarkup $ workbookRels $ length sheets)] ++ sheets'
         sheets' = map (\(n,(_,rs)) -> toEntry ("xl/worksheets/sheet" ++ show n ++ ".xml") t (renderMarkup $ renderSheet rs)) $
             zip [1..] sheets
