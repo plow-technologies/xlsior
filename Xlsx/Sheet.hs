@@ -1,11 +1,10 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, FlexibleInstances #-}
 module Xlsx.Sheet where
 
 import Data.Monoid
 import Data.Char
 import Text.Blaze
 import Text.Blaze.Internal
-import Text.Blaze.Renderer.Utf8
 import Data.ByteString (ByteString)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -100,6 +99,9 @@ instance (ToCell a, ToCell b, ToCell c, ToCell d, ToCell e, ToCell f, ToCell g, 
         (cellName r 7 $ toCell g) <> (cellName r 8 $ toCell h) where
             spn = spanRange 8
 
+instance ToCell a => ToRow [a] where
+    toRow cs = mkRow (spanRange $ length cs) $ \r -> mconcat $ map (\(n,c) -> cellName r n $ toCell c) $ zip [1..] cs
+
 class ToCell a where
     toCell :: a -> Markup
 
@@ -126,4 +128,7 @@ instance ToCell ByteString where
     toCell = inlineStr . unsafeByteString
 
 instance ToCell Text where
+    toCell = inlineStr . toMarkup
+
+instance ToCell [Char] where
     toCell = inlineStr . toMarkup

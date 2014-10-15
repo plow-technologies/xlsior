@@ -96,19 +96,21 @@ workbookRels sheets = Append decl $
 styles :: ByteString
 styles = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" mc:Ignorable=\"x14ac\" xmlns:x14ac=\"http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac\"></styleSheet>"
 
+sheetsLBS :: UTCTime -> T.Text -> [(T.Text, [Row])] -> ByteString
+sheetsLBS time creator sheets = fromArchive $ foldr addEntryToArchive emptyArchive entries where
+    t = round $ utcTimeToPOSIXSeconds time
+    entries = [toEntry "[Content_Types].xml" t (renderMarkup $ contentTypes $ length sheets), 
+        toEntry "_rels/.rels" t rootRelXml,
+        toEntry "docProps/app.xml" t appXml,
+        toEntry "docProps/core.xml" t (renderMarkup $ coreXml creator time),
+        toEntry "xl/styles.xml" t styles,
+        toEntry "xl/workbook.xml" t (renderMarkup $ workbook $ map fst sheets),
+        toEntry "xl/theme/theme1.xml" t (renderMarkup theme1),
+        toEntry "xl/_rels/workbook.xml.rels" t (renderMarkup $ workbookRels $ length sheets)] ++ sheets'
+    sheets' = map (\(n,(_,rs)) -> toEntry ("xl/worksheets/sheet" ++ show n ++ ".xml") t (renderMarkup $ renderSheet rs)) $
+        zip [1..] sheets
+
 saveXlsx :: T.Text -> [(T.Text, [Row])] -> FilePath -> IO ()
 saveXlsx creator sheets path = do
     curtime <- getCurrentTime
-    let arx = foldr addEntryToArchive emptyArchive entries
-        t = round $ utcTimeToPOSIXSeconds curtime
-        entries = [toEntry "[Content_Types].xml" t (renderMarkup $ contentTypes $ length sheets), 
-            toEntry "_rels/.rels" t rootRelXml,
-            toEntry "docProps/app.xml" t appXml,
-            toEntry "docProps/core.xml" t (renderMarkup $ coreXml creator curtime),
-            toEntry "xl/styles.xml" t styles,
-            toEntry "xl/workbook.xml" t (renderMarkup $ workbook $ map fst sheets),
-            toEntry "xl/theme/theme1.xml" t (renderMarkup theme1),
-            toEntry "xl/_rels/workbook.xml.rels" t (renderMarkup $ workbookRels $ length sheets)] ++ sheets'
-        sheets' = map (\(n,(_,rs)) -> toEntry ("xl/worksheets/sheet" ++ show n ++ ".xml") t (renderMarkup $ renderSheet rs)) $
-            zip [1..] sheets
-    L.writeFile path $ fromArchive arx
+    L.writeFile path $ sheetsLBS curtime creator sheets
