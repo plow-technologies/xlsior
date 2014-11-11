@@ -3,6 +3,7 @@ module Xlsx.Writer (toRow, sheetsLBS, saveXlsx) where
 
 import Codec.Archive.Zip
 import Data.Monoid
+import Xlsx.Types hiding (Empty)
 import Xlsx.Sheet
 import Text.Blaze.Internal
 import Text.Blaze.Renderer.Utf8

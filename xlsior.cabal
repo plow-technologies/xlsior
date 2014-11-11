@@ -16,10 +16,10 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Xlsx.Writer, Xlsx.Sheet, Xlsx.Parse
-  -- other-modules:       
+  exposed-modules:     Xlsx.Writer, Xlsx.Sheet, Xlsx.Parse, Xlsx.Types
+  other-modules:       Xlsx.Types.Internal, Xlsx.Types.Class, Xlsx.Types.Instances
   other-extensions:    OverloadedStrings
-  build-depends:       base >=4.7 && <4.8, zip-archive >=0.2 && <0.3, blaze-markup >=0.6 && <0.7, text, bytestring, time, old-locale, vector, conduit, xml-conduit, data-default, exceptions, conduit-extra, resourcet, xml-types
+  build-depends:       base >=4.7 && <4.8, zip-archive >=0.2 && <0.3, blaze-markup >=0.6 && <0.7, text, bytestring, time, old-locale, vector, conduit, xml-conduit, data-default, exceptions, conduit-extra, resourcet, xml-types, mtl
   -- hs-source-dirs:      
   default-language:    Haskell2010
   ghc-options:         -Wall -O2
