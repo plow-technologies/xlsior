@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Xlsx.Writer where
+module Xlsx.Writer (toRow, sheetsLBS, saveXlsx) where
 
 import Codec.Archive.Zip
 import Data.Monoid

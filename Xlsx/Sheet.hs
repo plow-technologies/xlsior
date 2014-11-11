@@ -99,6 +99,14 @@ instance (ToCell a, ToCell b, ToCell c, ToCell d, ToCell e, ToCell f, ToCell g, 
         (cellName r 7 $ toCell g) <> (cellName r 8 $ toCell h) where
             spn = spanRange 8
 
+instance (ToCell a, ToCell b, ToCell c, ToCell d, ToCell e, ToCell f, ToCell g, ToCell h, ToCell i) =>
+    ToRow (a, b, c, d, e, f, g, h, i) where
+    toRow (a, b, c, d, e, f, g, h, i) = mkRow spn $ \r ->
+        (cellName r 1 $ toCell a) <> (cellName r 2 $ toCell b) <> (cellName r 3 $ toCell c) <>
+        (cellName r 4 $ toCell d) <> (cellName r 5 $ toCell e) <> (cellName r 6 $ toCell f) <>
+        (cellName r 7 $ toCell g) <> (cellName r 8 $ toCell h) <> (cellName r 9 $ toCell i)where
+            spn = spanRange 9
+
 instance ToCell a => ToRow [a] where
     toRow cs = mkRow (spanRange $ length cs) $ \r -> mconcat $ map (\(n,c) -> cellName r n $ toCell c) $ zip [1..] cs
 
