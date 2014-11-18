@@ -6,6 +6,7 @@ module Xlsx.Types
     , FromRow(..)
     , ToCell(..)
     , ToRow(..)
+    , unsparse
     ) where
 
 import Xlsx.Types.Internal

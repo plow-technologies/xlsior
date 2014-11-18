@@ -4,6 +4,7 @@ module Xlsx.Types.Instances where
 import Control.Applicative
 import Control.Monad.Reader
 import Data.Char
+import Data.Scientific
 import Data.Monoid
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -132,7 +133,7 @@ instance FromCell (Int) where
     fromCell _ = error "expected number"
 
 instance FromCell (Double) where
-    fromCell (Number n,_) = pure n
+    fromCell (Number n,_) = pure $ toRealFloat n
     fromCell _ = error "expected number"
 
 instance FromCell (Bool) where
