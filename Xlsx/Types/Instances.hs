@@ -1,8 +1,10 @@
 {-# LANGUAGE OverloadedStrings, FlexibleInstances, UndecidableInstances #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Xlsx.Types.Instances where
 
 import Control.Applicative
 import Control.Monad.Reader
+import Control.Monad.Identity
 import Data.Char
 import Data.Scientific
 import Data.Monoid
@@ -120,6 +122,7 @@ numericCell v = Parent "c" "<c" "</c>" $ Parent "v" "<v" "</v>" $ toMarkup v
 
 unsparse :: [((Int, Int), Cell)] -> [Cell]
 unsparse cols = go 1 cols where
+    go _ [] = []
     go n cs@(((_,n'),c):cs') | n' > n = (Empty, Nothing) : go (n+1) cs
                              | otherwise = c : go (n+1) cs'
 
@@ -145,9 +148,9 @@ instance (FromCell a) => FromCell (Maybe a) where
     fromCell (Empty,_) = pure Nothing
     fromCell o = Just <$> fromCell o
 
-instance (FromCell a) => FromRow a where
+instance (FromCell a) => FromRow (Identity a) where
     fromRow r = case unsparse r of
-        [a] -> fromCell a
+        [a] -> Identity <$> fromCell a
         _ -> error "columns"
 
 instance (FromCell a, FromCell b) => FromRow (a,b) where
