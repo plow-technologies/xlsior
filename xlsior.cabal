@@ -3,12 +3,12 @@
 
 name:                xlsior
 version:             0.1.0.0
--- synopsis:            
--- description:         
--- license:             
+synopsis:            Streaming Excel file generation and parsing
+description:         Streaming Excel file generation and parsing
+license:             MIT
 license-file:        LICENSE
 author:              rcallahan
-maintainer:          rcallahan@eurekagenomics.com
+maintainer:          ropoctl@gmail.com
 -- copyright:           
 category:            Codec
 build-type:          Simple
