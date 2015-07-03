@@ -13,7 +13,7 @@ import Data.Text.Lazy (Text)
 import Data.Time.Format
 import Data.Time.Clock.POSIX
 import Data.Time.Clock
-import System.Locale
+import Data.Time.Locale.Compat
 import qualified Data.Text as T
 
 contentTypes :: Int -> Markup
