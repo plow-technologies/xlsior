@@ -17,6 +17,9 @@ import Text.Blaze.Internal hiding (Empty)
 import Xlsx.Types.Internal
 import Xlsx.Types.Class
 
+instance ToCell Markup where
+    toCell = id
+
 instance ToCell Integer where
     toCell = numericCell
 
