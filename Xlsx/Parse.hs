@@ -35,9 +35,9 @@ parseCoord t = go 0 $ map ord $ T.unpack t where
     go' m n (c:cs) | c <= nine && c >= zero = go' m (n*10 + c - zero) cs
                    | otherwise = Nothing
 
-tagLocal n = tagPredicate (\Name {nameLocalName = l} -> n == l)
+tagLocal n = tag' $ matching (\Name {nameLocalName = l} -> n == l)
 
-tagLocalNoAttr n c = tagLocal n ignoreAttrs $ const c
+tagLocalNoAttr n c = tagIgnoreAttrs (matching (\Name {nameLocalName = l} -> n == l)) c
 
 sharedStringSink :: (Monad m, MonadThrow m) => Sink ByteString m (Vector Text)
 sharedStringSink = parseBytes def =$= (force "sst" $ tagLocal "sst" parseCount vecsink) where
@@ -56,7 +56,7 @@ sharedStringSink = parseBytes def =$= (force "sst" $ tagLocal "sst" parseCount v
         mbevent <- CL.peek
         case mbevent of
             Just j@(EventEndElement n) | nameLocalName n == "rPr" -> return ()
-            Nothing -> monadThrow $ XmlException "no rPr closing tag" Nothing
+            Nothing -> throwM $ XmlException "no rPr closing tag" Nothing
             _ -> CL.drop 1 >> skipPr
 
 
@@ -65,12 +65,12 @@ rawRows = parseBytes def =$= skiptorows where
     skiptorows = do
         mbevent <- await
         case mbevent of
-            Nothing -> monadThrow $ XmlException "sheetData expected" Nothing
+            Nothing -> throwM $ XmlException "sheetData expected" Nothing
             Just j@(EventBeginElement n _) | nameLocalName n == "sheetData" -> rowsink
             _ -> skiptorows
     row = tagLocalNoAttr "row" $ many $ tagLocal "c" ((,) <$> requireAttr "r" <*> optionalAttr "t" <* ignoreAttrs) $ \(coord, mbt) -> do
         coord' <- case parseCoord coord of
-            Nothing -> monadThrow $ XmlException ("invalid coordinate: " ++ T.unpack coord) Nothing
+            Nothing -> throwM $ XmlException ("invalid coordinate: " ++ T.unpack coord) Nothing
             Just j -> return j
         f <- tagLocalNoAttr "f" content
         cellv <- case mbt of
