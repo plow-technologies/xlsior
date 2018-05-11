@@ -11,7 +11,7 @@ import qualified Data.Text as T
 import Xlsx.Types hiding (Empty)
 
 decl :: Markup
-decl = Content $ Static "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+decl = Content (Static "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n") ()
 
 renderSheet :: [Row] -> Markup
 renderSheet rows = Append decl $ wrksh where
@@ -22,5 +22,7 @@ renderSheet rows = Append decl $ wrksh where
         AddAttribute "xmlns:x14ac" " xmlns:x14ac=\"" "http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac" $
         Parent "worksheet" "<worksheet" "</worksheet>" $
         Parent "sheetData" "<sheetData" "</sheetData>" $ go 1 rows
-    go _ [] = Empty
+        
+    go :: Int -> [Int -> Markup] -> Markup
+    go _ [] = Empty ()
     go n (r:rs) = Append (r n) (go (n+1) rs)

@@ -17,7 +17,7 @@ import Data.Time.Locale.Compat
 import qualified Data.Text as T
 
 contentTypes :: Int -> Markup
-contentTypes n = Append decl $ types $ Append (Content $ Static "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/><Override PartName=\"/xl/theme/theme1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.theme+xml\"/><Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/><Override PartName=\"/docProps/core.xml\" ContentType=\"application/vnd.openxmlformats-package.core-properties+xml\"/><Override PartName=\"/docProps/app.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.extended-properties+xml\"/>") sheets where
+contentTypes n = Append decl $ types $ Append (Content (Static "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/><Override PartName=\"/xl/theme/theme1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.theme+xml\"/><Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/><Override PartName=\"/docProps/core.xml\" ContentType=\"application/vnd.openxmlformats-package.core-properties+xml\"/><Override PartName=\"/docProps/app.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.extended-properties+xml\"/>") ()) sheets where
     sheets = mconcat $ map sheet [1..n]
     types = AddAttribute "xmlns" " xmlns=\"" "http://schemas.openxmlformats.org/package/2006/content-types" .
         Parent "Types" "<Types" "</Types>"
@@ -25,7 +25,7 @@ contentTypes n = Append decl $ types $ Append (Content $ Static "<Default Extens
     sheet :: Int -> Markup
     sheet n = conttype "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" $ 
         AddAttribute "PartName" " PartName=\"" (String $ "/xl/worksheet/sheet" ++ show n ++ ".xml") $
-        Parent "Override" "<Override" "</Override>" Empty
+        Parent "Override" "<Override" "</Override>" (Empty ())
 
 rootRelXml :: ByteString
 rootRelXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties\" Target=\"docProps/core.xml\"/><Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties\" Target=\"docProps/app.xml\"/></Relationships>"
@@ -60,8 +60,8 @@ coreXml name time = Append decl $
     Append (w3cdtf $ Parent "dcterms:created" "<dcterms:created" "</dcterms:created>" time') $
     w3cdtf $ Parent "dcterms:modified" "<dcterms:modified" "</dcterms:modified>" time' where
     w3cdtf = AddAttribute "xsi:type" " xsi:type=\"" "dcterms:W3CDTF"
-    name' = Content $ Text name
-    time' = Content $ Text $ T.pack $ formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%SZ" time
+    name' = Content (Text name) ()
+    time' = Content (Text $ T.pack $ formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%SZ" time) ()
 
 theme1 :: Markup
 theme1 = decl
@@ -76,7 +76,7 @@ workbook sheets = Append decl $
     sheettag (n, s) = AddAttribute "name" " name=\"" (Text s) $
         AddAttribute "sheetId" " sheetId=\"" (String $ show n) $
         AddAttribute "r:id" " r:id=\"" (String $ "rId" ++ show n) $
-        Parent "sheet" "<sheet" "</sheet>" Empty
+        Parent "sheet" "<sheet" "</sheet>" (Empty ())
 
 workbookRels :: Int -> Markup
 workbookRels sheets = Append decl $
@@ -90,7 +90,7 @@ workbookRels sheets = Append decl $
         sheetrel :: Int -> Markup
         sheetrel n = typeattr "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" $
             rId n $ target (String $ "worksheets/sheet" ++ show n ++ ".xml") reltag
-        reltag = Parent "Relationship" "<Relationship" "</Relationship>" Empty
+        reltag = Parent "Relationship" "<Relationship" "</Relationship>" (Empty ())
         otherrels = rId (sheets+1) $ target "styles.xml" $
             typeattr "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" reltag
 
