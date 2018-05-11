@@ -1,5 +1,5 @@
 name:                xlsior
-version:             0.1.1.0
+version:             0.2.0.0
 synopsis:            Streaming Excel file generation and parsing
 description:         Streaming Excel file generation and parsing
 license:             MIT
